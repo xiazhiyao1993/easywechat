@@ -36,7 +36,7 @@ class OAuthAuthenticate
 
         if(strpos($request->url,'microScenario')){
             $url = urlencode($request->url);
-            return redirect('https://love.ufutx.com/api/official/live/wechat/FamilyAuth?url='.$url);
+            return redirect('https://love.ufutx.com/api/official/live/wechat/FamilyAuth?url='.$url."&from_platform=".$request->from_platform."&from_openid=".$request->from_openid);
         }
         // $account 与 $scopes 写反的情况
         if (is_array($scopes) || (\is_string($account) && Str::is('snsapi_*', $account))) {
