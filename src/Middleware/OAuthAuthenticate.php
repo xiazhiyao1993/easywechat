@@ -70,11 +70,6 @@ class OAuthAuthenticate
             session()->forget($sessionKey);
 
             return $officialAccount->oauth->scopes(['snsapi_base'])->redirect($request->fullUrl());
-        }else{
-            $wechater = $officialAccount->oauth->user();
-            if($wechater && !isset($wechater['nickname'])){
-                return $this->wechat->oauth->scopes(['snsapi_userinfo'])->redirect($request->fullUrl());
-            }
         }
 
         event(new WeChatUserAuthorized(session($sessionKey), $isNewSession, $account));
