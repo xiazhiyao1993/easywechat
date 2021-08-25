@@ -33,7 +33,7 @@ class OAuthAuthenticate
      */
     public function handle($request, Closure $next, $account = 'default', $scopes = null)
     {
-
+      
         if(strpos($request->url,'microScenario')){
             $url = urlencode($request->url);
             return redirect('https://love.ufutx.com/api/official/live/wechat/FamilyAuth?url='.$url."&from_platform=".$request->from_platform."&from_openid=".$request->from_openid);
@@ -43,20 +43,35 @@ class OAuthAuthenticate
             list($account, $scopes) = [$scopes, $account];
             $account || $account = 'default';
         }
-
+  
         $isNewSession = false;
         $sessionKey = \sprintf('wechat.oauth_user.%s', $account);
         
         $config = config(\sprintf('wechat.official_account.%s', $account), []);
         $officialAccount = app(\sprintf('wechat.official_account.%s', $account));
         $scopes = $scopes ?: Arr::get($config, 'oauth.scopes', ['snsapi_base']);
-
+       
         if (is_string($scopes)) {
             $scopes = array_map('trim', explode(',', $scopes));
         }
 
         $session = session($sessionKey, []);
 
+
+        // 如果是商户版授权
+
+        if($request->type=='business'){
+            if ($request->has('code')) {
+                session([$sessionKey => $officialAccount->oauth->user() ?? []]);
+                $isNewSession = true;
+                event(new WeChatUserAuthorized(session($sessionKey), $isNewSession, $account));
+                return redirect()->to($this->getTargetUrl($request));
+            }
+            session()->forget($sessionKey);
+            return $officialAccount->oauth->scopes(['snsapi_userinfo'])->redirect($request->fullUrl());
+        }
+        
+        // 如果session
         if (!$session) { 
             if ($request->has('code')) {
                 session([$sessionKey => $officialAccount->oauth->user() ?? []]);
@@ -68,7 +83,7 @@ class OAuthAuthenticate
             }
 
             session()->forget($sessionKey);
-
+          
             return $officialAccount->oauth->scopes(['snsapi_base'])->redirect($request->fullUrl());
         }
 
