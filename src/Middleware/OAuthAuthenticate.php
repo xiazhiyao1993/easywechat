@@ -68,7 +68,7 @@ class OAuthAuthenticate
                 return redirect()->to($this->getTargetUrl($request));
             }
             session()->forget($sessionKey);
-            return $officialAccount->oauth->scopes(['snsapi_base'])->redirect($request->fullUrl());
+            return $officialAccount->oauth->scopes(['snsapi_userinfo'])->redirect($request->fullUrl());
         }
         
         // 如果session
